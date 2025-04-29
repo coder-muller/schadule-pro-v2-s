@@ -80,6 +80,7 @@ model Appointment {
   sectionId      String
   date           DateTime
   timeId         String
+  status         String    
   paidAt         DateTime?
   price          Decimal   @db.Decimal(10, 2)
 

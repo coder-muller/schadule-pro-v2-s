@@ -71,9 +71,9 @@ router.get('/:userId/:appointmentId', async (req, res) => {
 
 router.post('/:userId', async (req, res) => {
     const { userId } = req.params;
-    const { clientId, professionalId, sectionId, date, timeId, price, paidAt } = req.body;
+    const { clientId, professionalId, sectionId, date, timeId, price, paidAt, status } = req.body;
 
-    if (!userId || !clientId || !professionalId || !sectionId || !date || !timeId || !price || !paidAt) {
+    if (!userId || !clientId || !professionalId || !sectionId || !date || !status || !timeId || !price) {
         return res.status(400).json({ message: 'Todos os campos são obrigatórios' });
     }
 
@@ -88,7 +88,7 @@ router.post('/:userId', async (req, res) => {
         }
 
         const appointment = await prisma.appointment.create({
-            data: { clientId, professionalId, sectionId, date, timeId, userId, price, paidAt },
+            data: { clientId, professionalId, sectionId, date, timeId, userId, status, price: price ? Number(price) : 0, paidAt: paidAt ? new Date(paidAt) : null },
         });
 
         return res.status(201).json(appointment);
@@ -100,9 +100,9 @@ router.post('/:userId', async (req, res) => {
 
 router.put('/:userId/:appointmentId', async (req, res) => {
     const { userId, appointmentId } = req.params;
-    const { clientId, professionalId, sectionId, date, timeId, price, paidAt } = req.body;
+    const { clientId, professionalId, sectionId, date, timeId, price, paidAt, status } = req.body;
 
-    if (!userId || !appointmentId || !clientId || !professionalId || !sectionId || !date || !timeId || !price || !paidAt) {
+    if (!userId || !appointmentId || !clientId || !professionalId || !sectionId || !date || !timeId || !price || !status) {
         return res.status(400).json({ message: 'Todos os campos são obrigatórios' });
     }
 
@@ -118,7 +118,7 @@ router.put('/:userId/:appointmentId', async (req, res) => {
 
         const appointment = await prisma.appointment.update({
             where: { id: appointmentId },
-            data: { clientId, professionalId, sectionId, date, timeId, price, paidAt },
+            data: { clientId, professionalId, sectionId, date, timeId, price, paidAt, status },
         });
 
         return res.status(200).json(appointment);
@@ -127,11 +127,11 @@ router.put('/:userId/:appointmentId', async (req, res) => {
     }
 });
 
-router.put('/:userId/:appointmentId/price', async (req, res) => {
+router.put('/:userId/:appointmentId/status', async (req, res) => {
     const { userId, appointmentId } = req.params;
-    const { paidAt } = req.body;
+    const { status } = req.body;
 
-    if (!userId || !appointmentId || !paidAt) {
+    if (!userId || !appointmentId || !status) {
         return res.status(400).json({ message: 'Todos os campos são obrigatórios' });
     }
 
@@ -147,12 +147,75 @@ router.put('/:userId/:appointmentId/price', async (req, res) => {
 
         const appointment = await prisma.appointment.update({
             where: { id: appointmentId },
-            data: { paidAt },
+            data: { status },
         });
 
         return res.status(200).json(appointment);
     } catch (error) {
-        return res.status(500).json({ message: 'Erro ao atualizar preço do agendamento' });
+        return res.status(500).json({ message: 'Erro ao atualizar status do agendamento' });
+    }
+});
+
+// Endpoint para marcar um agendamento como pago
+router.put('/:userId/:appointmentId/payment', async (req, res) => {
+    const { userId, appointmentId } = req.params;
+
+    if (!userId || !appointmentId) {
+        return res.status(400).json({ message: 'ID do usuário e do agendamento são obrigatórios' });
+    }
+
+    try {
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) {
+            return res.status(404).json({ message: 'Usuário não encontrado' });
+        }
+
+        if (!user.valid) {
+            return res.status(403).json({ message: 'Usuário não validado' });
+        }
+
+        // Criar uma data no formato esperado para GMT-3
+        const today = new Date();
+        const formattedDate = `${today.toISOString().split('T')[0]}T03:00:00.000Z`;
+
+        const appointment = await prisma.appointment.update({
+            where: { id: appointmentId },
+            data: { paidAt: new Date(formattedDate) },
+        });
+
+        return res.status(200).json(appointment);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Erro ao marcar agendamento como pago' });
+    }
+});
+
+router.put('/:userId/:appointmentId/unpaid', async (req, res) => {
+    const { userId, appointmentId } = req.params;
+
+    if (!userId || !appointmentId) {
+        return res.status(400).json({ message: 'ID do usuário e do agendamento são obrigatórios' });
+    }
+
+    try {
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) {
+            return res.status(404).json({ message: 'Usuário não encontrado' });
+        }
+
+        if (!user.valid) {
+            return res.status(403).json({ message: 'Usuário não validado' });
+        }
+
+        const appointment = await prisma.appointment.update({
+            where: { id: appointmentId },
+            data: { paidAt: null },
+        });
+
+        return res.status(200).json(appointment);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Erro ao marcar agendamento como não pago' });
     }
 });
 
