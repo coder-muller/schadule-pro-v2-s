@@ -4,45 +4,45 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 const router = Router();
 
-router.get('/:userId', async (req, res) => {
-    const { userId } = req.params;
+router.get('/:professionalId', async (req, res) => {
+    const { professionalId } = req.params;
 
-    if (!userId) {
-        return res.status(400).json({ message: 'ID do usuário é obrigatório' });
+    if (!professionalId) {
+        return res.status(400).json({ message: 'ID do profissional é obrigatório' });
     }
 
     try {
-        const user = await prisma.user.findUnique({ where: { id: userId }} );
-        if (!user) {
-            return res.status(404).json({ message: 'Usuário não encontrado' });
+        const professional = await prisma.professional.findUnique({ where: { id: professionalId }, include: { times: true } });
+        if (!professional) {
+            return res.status(404).json({ message: 'Profissional não encontrado' });
         }
 
-        if (!user.valid) {
-            return res.status(403).json({ message: 'Usuário não validado' });
+        if (!professional.userId) {
+            return res.status(403).json({ message: 'Profissional não validado' });
         }
 
-        const times = await prisma.time.findMany({ where: { userId }, orderBy: { startTime: 'asc' } });
+        const times = await prisma.time.findMany({ where: { professionalId: professionalId }, orderBy: { startTime: 'asc' } });
         return res.status(200).json(times);
     } catch (error) {
         return res.status(500).json({ message: 'Erro ao buscar horários' });
     }
 });
 
-router.get('/:userId/:timeId', async (req, res) => {
-    const { userId, timeId } = req.params;
+router.get('/:professionalId/:timeId', async (req, res) => {
+    const { professionalId, timeId } = req.params;
 
-    if (!userId || !timeId) {
-        return res.status(400).json({ message: 'ID do usuário e do horário são obrigatórios' });
+    if (!professionalId || !timeId) {
+        return res.status(400).json({ message: 'ID do profissional e do horário são obrigatórios' });
     }
 
     try {
-        const user = await prisma.user.findUnique({ where: { id: userId } });
-        if (!user) {
-            return res.status(404).json({ message: 'Usuário não encontrado' });
+        const professional = await prisma.professional.findUnique({ where: { id: professionalId } });
+        if (!professional) {
+            return res.status(404).json({ message: 'Profissional não encontrado' });
         }
 
-        if (!user.valid) {
-            return res.status(403).json({ message: 'Usuário não validado' });
+        if (!professional.userId) {
+            return res.status(403).json({ message: 'Profissional não validado' });
         }
 
         const time = await prisma.time.findUnique({ where: { id: timeId } });
@@ -56,26 +56,26 @@ router.get('/:userId/:timeId', async (req, res) => {
     }
 });
 
-router.post('/:userId', async (req, res) => {
-    const { userId } = req.params;
+router.post('/:professionalId', async (req, res) => {
+    const { professionalId } = req.params;
     const { startTime, endTime } = req.body;
 
-    if (!userId || !startTime || !endTime) {
-        return res.status(400).json({ message: 'ID do usuário e horário são obrigatórios' });
+    if (!professionalId || !startTime || !endTime) {
+        return res.status(400).json({ message: 'ID do profissional e horário são obrigatórios' });
     }
 
     try {
-        const user = await prisma.user.findUnique({ where: { id: userId } });
-        if (!user) {
-            return res.status(404).json({ message: 'Usuário não encontrado' });
+        const professional = await prisma.professional.findUnique({ where: { id: professionalId } });
+        if (!professional) {
+            return res.status(404).json({ message: 'Profissional não encontrado' });
         }
 
-        if (!user.valid) {
-            return res.status(403).json({ message: 'Usuário não validado' });
+        if (!professional.userId) {
+            return res.status(403).json({ message: 'Profissional não validado' });
         }
 
         const time = await prisma.time.create({
-            data: { startTime, endTime, userId },
+            data: { startTime, endTime, professionalId },
         });
 
         return res.status(201).json(time);
@@ -84,22 +84,22 @@ router.post('/:userId', async (req, res) => {
     }
 });
 
-router.put('/:userId/:timeId', async (req, res) => {
-    const { userId, timeId } = req.params;
+router.put('/:professionalId/:timeId', async (req, res) => {
+    const { professionalId, timeId } = req.params;
     const { startTime, endTime } = req.body;
 
-    if (!userId || !timeId || !startTime || !endTime) {
-        return res.status(400).json({ message: 'ID do usuário, horário e horário são obrigatórios' });
+    if (!professionalId || !timeId || !startTime || !endTime) {
+        return res.status(400).json({ message: 'ID do profissional, horário e horário são obrigatórios' });
     }
 
     try {
-        const user = await prisma.user.findUnique({ where: { id: userId } });
-        if (!user) {
-            return res.status(404).json({ message: 'Usuário não encontrado' });
+        const professional = await prisma.professional.findUnique({ where: { id: professionalId } });
+        if (!professional) {
+            return res.status(404).json({ message: 'Profissional não encontrado' });
         }
 
-        if (!user.valid) {
-            return res.status(403).json({ message: 'Usuário não validado' });
+        if (!professional.userId) {
+            return res.status(403).json({ message: 'Profissional não validado' });
         }
 
         const time = await prisma.time.update({
@@ -113,21 +113,21 @@ router.put('/:userId/:timeId', async (req, res) => {
     }
 });
 
-router.delete('/:userId/:timeId', async (req, res) => {
-    const { userId, timeId } = req.params;
+router.delete('/:professionalId/:timeId', async (req, res) => {
+    const { professionalId, timeId } = req.params;
 
-    if (!userId || !timeId) {
-        return res.status(400).json({ message: 'ID do usuário e do horário são obrigatórios' });
+    if (!professionalId || !timeId) {
+        return res.status(400).json({ message: 'ID do profissional e do horário são obrigatórios' });
     }
 
     try {
-        const user = await prisma.user.findUnique({ where: { id: userId } });
-        if (!user) {
-            return res.status(404).json({ message: 'Usuário não encontrado' });
+        const professional = await prisma.professional.findUnique({ where: { id: professionalId } });
+        if (!professional) {
+            return res.status(404).json({ message: 'Profissional não encontrado' });
         }
 
-        if (!user.valid) {
-            return res.status(403).json({ message: 'Usuário não validado' });
+        if (!professional.userId) {
+            return res.status(403).json({ message: 'Profissional não validado' });
         }
 
         await prisma.time.delete({ where: { id: timeId } });

@@ -22,7 +22,7 @@ router.get('/:userId', async (req, res) => {
             return res.status(403).json({ message: 'Usuário não validado' });
         }
 
-        const professionals = await prisma.professional.findMany({ where: { userId }, orderBy: { name: 'asc' } });
+        const professionals = await prisma.professional.findMany({ where: { userId }, orderBy: { name: 'asc' }, include: { times: true } });
         return res.status(200).json(professionals);
     } catch (error) {
         return res.status(500).json({ message: 'Erro ao buscar profissionais' });
@@ -46,7 +46,7 @@ router.get('/:userId/:professionalId', async (req, res) => {
             return res.status(403).json({ message: 'Usuário não validado' });
         }
 
-        const professional = await prisma.professional.findUnique({ where: { id: professionalId } });
+        const professional = await prisma.professional.findUnique({ where: { id: professionalId }, include: { times: true } });
 
         if (!professional) {
             return res.status(404).json({ message: 'Profissional não encontrado' });

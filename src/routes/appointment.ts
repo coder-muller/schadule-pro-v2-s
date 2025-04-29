@@ -71,9 +71,9 @@ router.get('/:userId/:appointmentId', async (req, res) => {
 
 router.post('/:userId', async (req, res) => {
     const { userId } = req.params;
-    const { clientId, professionalId, sectionId, date, timeId, status } = req.body;
+    const { clientId, professionalId, sectionId, date, timeId, price, paidAt } = req.body;
 
-    if (!userId || !clientId || !professionalId || !sectionId || !date || !timeId || !status) {
+    if (!userId || !clientId || !professionalId || !sectionId || !date || !timeId || !price || !paidAt) {
         return res.status(400).json({ message: 'Todos os campos são obrigatórios' });
     }
 
@@ -88,7 +88,7 @@ router.post('/:userId', async (req, res) => {
         }
 
         const appointment = await prisma.appointment.create({
-            data: { clientId, professionalId, sectionId, date, timeId, userId, status },
+            data: { clientId, professionalId, sectionId, date, timeId, userId, price, paidAt },
         });
 
         return res.status(201).json(appointment);
@@ -100,9 +100,9 @@ router.post('/:userId', async (req, res) => {
 
 router.put('/:userId/:appointmentId', async (req, res) => {
     const { userId, appointmentId } = req.params;
-    const { clientId, professionalId, sectionId, date, timeId, status } = req.body;
+    const { clientId, professionalId, sectionId, date, timeId, price, paidAt } = req.body;
 
-    if (!userId || !appointmentId || !clientId || !professionalId || !sectionId || !date || !timeId || !status) {
+    if (!userId || !appointmentId || !clientId || !professionalId || !sectionId || !date || !timeId || !price || !paidAt) {
         return res.status(400).json({ message: 'Todos os campos são obrigatórios' });
     }
 
@@ -118,7 +118,7 @@ router.put('/:userId/:appointmentId', async (req, res) => {
 
         const appointment = await prisma.appointment.update({
             where: { id: appointmentId },
-            data: { clientId, professionalId, sectionId, date, timeId, status },
+            data: { clientId, professionalId, sectionId, date, timeId, price, paidAt },
         });
 
         return res.status(200).json(appointment);
@@ -126,12 +126,12 @@ router.put('/:userId/:appointmentId', async (req, res) => {
         return res.status(500).json({ message: 'Erro ao atualizar agendamento' });
     }
 });
-        
-router.put('/:userId/:appointmentId/status', async (req, res) => {
-    const { userId, appointmentId } = req.params;
-    const { status } = req.body;
 
-    if (!userId || !appointmentId || !status) {
+router.put('/:userId/:appointmentId/price', async (req, res) => {
+    const { userId, appointmentId } = req.params;
+    const { paidAt } = req.body;
+
+    if (!userId || !appointmentId || !paidAt) {
         return res.status(400).json({ message: 'Todos os campos são obrigatórios' });
     }
 
@@ -147,12 +147,12 @@ router.put('/:userId/:appointmentId/status', async (req, res) => {
 
         const appointment = await prisma.appointment.update({
             where: { id: appointmentId },
-            data: { status },
+            data: { paidAt },
         });
 
         return res.status(200).json(appointment);
     } catch (error) {
-        return res.status(500).json({ message: 'Erro ao atualizar status do agendamento' });
+        return res.status(500).json({ message: 'Erro ao atualizar preço do agendamento' });
     }
 });
 
