@@ -1,0 +1,12 @@
+.env
+Dockerfile
+docker-compose.yml
+node_modules
+package-lock.json
+README.md
+.gitignore
+.git
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local

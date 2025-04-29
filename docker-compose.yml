@@ -1,0 +1,54 @@
+services:
+  app:
+    build: .
+    container_name: schadule-pro-v2-server
+    restart: always
+    environment:
+      DATABASE_URL: "postgres://root:newdbav5@db:5432/schadule-pro-v2"
+      PORT: "8888"
+    labels:
+      - traefik.enable=true
+
+      - traefik.http.routers.projectSchaduleProV2-http.rule=Host(`schadule-pro.cgmcloud.com.br`)
+      - traefik.http.routers.projectSchaduleProV2-http.entrypoints=http
+      - traefik.http.routers.projectSchaduleProV2-http.middlewares=https-redirect
+
+      - traefik.http.routers.projectSchaduleProV2-https.rule=Host(`schadule-pro.cgmcloud.com.br`)
+      - traefik.http.routers.projectSchaduleProV2-https.entrypoints=https
+      - traefik.http.routers.projectSchaduleProV2-https.tls=true
+      - traefik.http.routers.projectSchaduleProV2-https.tls.certresolver=le
+      - traefik.http.routers.projectSchaduleProV2-https.service=projectSchaduleProV2-service
+      - traefik.http.services.projectSchaduleProV2-service.loadbalancer.server.port=8888
+    networks:
+      - traefik-public
+    ports:
+      - "8888:8888"
+    volumes:
+      # Mount everything except .env file
+      - ./prisma:/app/prisma:cached
+      - ./src:/app/src:cached
+      - ./package.json:/app/package.json:cached
+      - ./package-lock.json:/app/package-lock.json:cached
+      - ./tsconfig.json:/app/tsconfig.json:cached
+      - /app/node_modules
+    command: npm run start
+
+  db:
+    image: postgres:14
+    container_name: schadule-pro-v2-db
+    restart: always
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: newdbav5
+      POSTGRES_DB: schadule-pro-v2
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - traefik-public
+
+volumes:
+  pg_data:
+
+networks:
+  traefik-public:
+    external: true
