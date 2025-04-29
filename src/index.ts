@@ -7,14 +7,14 @@ import professionalsRouter from './routes/professionals';
 import sectionsRouter from './routes/sections';
 import appointmentsRouter from './routes/appointment';
 import timesRouter from './routes/times';
+import dashboardRouter from './routes/dashboard';
+
 const app = express();
 const PORT = process.env.PORT || 8888; 
 
-// Middleware  
 app.use(cors());
 app.use(express.json()); 
 
-// Rotas
 app.get('/', (req: Request, res: Response) => {
   res.json({ mensagem: 'API funcionando corretamente!' });
 });
@@ -26,8 +26,8 @@ app.use('/professionals', professionalsRouter);
 app.use('/sections', sectionsRouter);
 app.use('/times', timesRouter);
 app.use('/appointments', appointmentsRouter);
+app.use('/dashboard', dashboardRouter);
 
-// Iniciar o servidor
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 }); 
