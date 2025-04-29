@@ -4,7 +4,7 @@ services:
     container_name: schadule-pro-v2-server
     restart: always
     environment:
-      DATABASE_URL: "postgres://root:newdbav5@db:2435/schadule-pro-v2"
+      DATABASE_URL: "postgres://root:newdbav5@db:5432/schadule-pro-v2"
       PORT: "8888"
     labels:
       - traefik.enable=true
