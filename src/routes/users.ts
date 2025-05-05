@@ -42,7 +42,7 @@ router.get('/:id', async (req: Request, res: Response) => {
         });
         res.json(user);
     } catch (error) {
-        res.status(500).json({ message: 'Erro ao buscar usuário' }); 
+        res.status(500).json({ message: 'Erro ao buscar usuário' });
     }
 });
 
@@ -50,7 +50,7 @@ router.post('/', async (req: Request, res: Response) => {
     const { name, email, valid, password } = req.body;
 
     if (!name || !email || !valid || !password) {
-        res.status(400).json({ message: 'Todos os campos são obrigatórios' });
+        res.status(400).json({ message: 'Todos os campos são obrigatórios, missing: ' + (!name ? 'name' : '') + (!email ? 'email' : '') + (!valid ? 'valid' : '') + (!password ? 'password' : '') });
         return;
     }
 
@@ -85,6 +85,91 @@ router.put('/:id', async (req: Request, res: Response) => {
         res.json(user);
     } catch (error) {
         res.status(500).json({ message: 'Erro ao atualizar usuário' });
+    }
+});
+
+router.put('/:id/data', async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { name, email } = req.body;
+
+    if (!id) {
+        res.status(400).json({ message: 'ID do usuário é obrigatório' });
+        return;
+    }
+
+    try {
+        const user = await prisma.user.update({
+            where: { id },
+            data: { name, email }
+        });
+        res.json(user);
+    } catch (error) {
+        res.status(500).json({ message: 'Erro ao atualizar usuário' });
+    }
+});
+
+router.put('/:id/password', async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { password, oldPassword } = req.body;
+
+    if (!password || !oldPassword || !id) {
+        res.status(400).json({ message: 'Todos os campos são obrigatórios' });
+        return;
+    }
+
+    const user = await prisma.user.findUnique({
+        where: { id }
+    });
+
+    if (!user) {
+        res.status(404).json({ message: 'Usuário não encontrado' });
+        return;
+    }
+
+    const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
+
+    if (!isPasswordValid) {
+        res.status(400).json({ message: 'A senha antiga não confere' });
+        return;
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    try {
+        const user = await prisma.user.update({
+            where: { id },
+            data: { password: hashedPassword }
+        });
+        res.json(user);
+    } catch (error) {
+        res.status(500).json({ message: 'Erro ao atualizar usuário' });
+    }
+});
+
+router.put('/:id/status', async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    if (!id) {
+        res.status(400).json({ message: 'ID do usuário é obrigatório' });
+        return;
+    }
+
+    const user = await prisma.user.findUnique({
+        where: { id }
+    });
+
+    if (!user) {
+        res.status(404).json({ message: 'Usuário não encontrado' });
+        return;
+    }
+
+    try {
+        const updatedUser = await prisma.user.update({
+            where: { id },
+            data: { valid: !user.valid }
+        });
+        res.json(updatedUser);
+    } catch (error) {
+        res.status(500).json({ message: 'Erro ao atualizar status do usuário' });
     }
 });
 
