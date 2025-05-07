@@ -39,7 +39,7 @@ router.get('/:userId/:clientId', async (req: Request, res: Response) => {
 
 router.post('/:userId', async (req: Request, res: Response) => {
     const { userId } = req.params;
-    const { name, email, phone, status } = req.body;
+    const { name, email, phone, status, address, birthDate, cpf, observations } = req.body;
 
     console.log(`userId: ${userId}, name: ${name}, email: ${email}, phone: ${phone}, status: ${status}`);
 
@@ -55,6 +55,10 @@ router.post('/:userId', async (req: Request, res: Response) => {
                 email: email || null,
                 phone: phone || null,
                 status,
+                address: address || null,
+                birthDate: birthDate ? new Date(birthDate) : null,
+                cpf: cpf || null,
+                observations: observations || null,
                 user: {
                     connect: {
                         id: userId
@@ -71,7 +75,7 @@ router.post('/:userId', async (req: Request, res: Response) => {
 
 router.put('/:userId/:clientId', async (req: Request, res: Response) => {
     const { userId, clientId } = req.params;
-    const { name, email, phone, status } = req.body;
+    const { name, email, phone, status, address, birthDate, cpf, observations } = req.body;
 
     if (!userId || !clientId || !name || !status) {
         res.status(400).json({ message: 'Todos os campos são obrigatórios' });
@@ -79,7 +83,7 @@ router.put('/:userId/:clientId', async (req: Request, res: Response) => {
     }
 
     try {
-        const client = await prisma.client.update({ where: { id: clientId, userId: userId }, data: { name, email: email || null, phone: phone || null, status } });
+        const client = await prisma.client.update({ where: { id: clientId, userId: userId }, data: { name, email: email || null, phone: phone || null, status, address: address || null, birthDate: birthDate ? new Date(birthDate) : null, cpf: cpf || null, observations: observations || null } });
         res.json(client);
     } catch (error) {
         res.status(500).json({ message: 'Erro ao atualizar cliente' });
